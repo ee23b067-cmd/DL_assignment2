@@ -1,8 +1,11 @@
 import os
 import torch
 import torch.nn as nn
-import numpy as np
-from numpy._core.multiarray import scalar as numpy_scalar
+
+try:
+    from numpy._core.multiarray import scalar as numpy_scalar
+except ImportError:
+    from numpy.core.multiarray import scalar as numpy_scalar
 
 from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
@@ -24,9 +27,14 @@ class MultiTaskPerceptionModel(nn.Module):
         super().__init__()
 
         # Initialize models
-        classifier_model = VGG11Classifier(num_classes=num_breeds, in_channels=in_channels)
-        localizer_model = VGG11Localizer(in_channels=in_channels)
-        unet_model = VGG11UNet(num_classes=seg_classes, in_channels=in_channels)
+        classifier_model = VGG11Classifier(
+            num_classes=num_breeds,
+            in_channels=in_channels,
+            batchnorm=True,
+            head_batchnorm=True,
+        )
+        localizer_model = VGG11Localizer(in_channels=in_channels, batchnorm=True)
+        unet_model = VGG11UNet(num_classes=seg_classes, in_channels=in_channels, batchnorm=True)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -72,7 +80,7 @@ class MultiTaskPerceptionModel(nn.Module):
         # Heads
         self.classification_head = classifier_model.classifier
         self.localization_head = localizer_model.localization_head
-        self.localization_activation = localizer_model.activation
+        self.localization_activation = nn.Sigmoid()
 
         # Segmentation decoder
         self.decode4 = unet_model.decode4
@@ -85,12 +93,10 @@ class MultiTaskPerceptionModel(nn.Module):
         bottleneck, skips = self.backbone(x, return_features=True)
 
         # ✅ Classification
-        pooled = self.backbone.pool5(bottleneck)
-        class_out = self.classification_head(pooled)
+        class_out = self.classification_head(bottleneck)
 
         # ✅ Localization
-        loc_features = self.backbone.pool5(bottleneck)
-        loc_out = self.localization_head(loc_features)
+        loc_out = self.localization_head(bottleneck)
 
         _, _, h, w = x.shape
         loc_out = self.localization_activation(loc_out)

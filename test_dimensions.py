@@ -1,7 +1,7 @@
 # test_multitask.py
 
 import torch
-from multitask import MultiTaskPerceptionModel
+from models.multitask import MultiTaskPerceptionModel
 
 def test_multitask_forward():
 
