@@ -1,6 +1,8 @@
 import os
 import torch
 import torch.nn as nn
+import numpy as np
+from numpy._core.multiarray import scalar as numpy_scalar
 
 from models.classification import VGG11Classifier
 from models.localization import VGG11Localizer
@@ -30,11 +32,23 @@ class MultiTaskPerceptionModel(nn.Module):
 
         def load_weights(model, path):
             if os.path.exists(path):
-                checkpoint = torch.load(path, map_location=device)
+                try:
+                    checkpoint = torch.load(path, map_location=device, weights_only=False)
+                except TypeError:
+                    with torch.serialization.safe_globals([numpy_scalar]):
+                        checkpoint = torch.load(path, map_location=device)
+                except Exception:
+                    with torch.serialization.safe_globals([numpy_scalar]):
+                        checkpoint = torch.load(path, map_location=device, weights_only=False)
+
                 if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-                    model.load_state_dict(checkpoint["state_dict"])
+                    state_dict = checkpoint["state_dict"]
+                elif isinstance(checkpoint, dict):
+                    state_dict = checkpoint
                 else:
-                    model.load_state_dict(checkpoint)
+                    state_dict = checkpoint
+
+                model.load_state_dict(state_dict)
                 print(f"Loaded weights from {path}")
             else:
                 print(f"Warning: {path} not found.")
@@ -44,7 +58,7 @@ class MultiTaskPerceptionModel(nn.Module):
                 gdown = importlib.import_module("gdown")
                 gdown.download(id="1LE9vRm3EHsWLHy58WDyWkjmiSgDllMCG", output=classifier_path, quiet=False)
                 gdown.download(id="1QFDa-O74KMjanvWc1_oCpxANtzn4N7vJ", output=localizer_path, quiet=False)
-                gdown.download(id="15pDhBaSZbnVPBHejETYYboqkH3OAaGcy", output=unet_path, quiet=False)
+                gdown.download(id="14rA4MTIgPRg9dj51oUj1ErUKsRHr862a", output=unet_path, quiet=False)
             except ImportError:
                 print("Warning: gdown is not installed, skipping remote checkpoint download.")
         load_weights(classifier_model, classifier_path)
