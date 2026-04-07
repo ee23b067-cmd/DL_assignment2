@@ -1,0 +1,5 @@
+﻿oxford_pet/
+checkpoints/
+*.pth
+__pycache__/
+*.pyc
