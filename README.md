@@ -78,3 +78,7 @@ The script prints the output tensor shapes for each task.
 - Images and masks are resized to 224 x 224.
 - Classification and segmentation loaders do not require bounding boxes.
 - Localization and multi-task training expect bounding boxes to be available in the annotations.
+
+
+git hub : https://github.com/ee23b067-cmd/DL_assignment2/tree/main
+
