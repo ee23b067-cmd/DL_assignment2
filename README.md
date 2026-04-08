@@ -82,3 +82,4 @@ The script prints the output tensor shapes for each task.
 
 git hub : https://github.com/ee23b067-cmd/DL_assignment2/tree/main
 
+wandb : https://wandb.ai/ee23b067-indian-institute-of-technology-madras/DA6401_assignement2/reportlist
