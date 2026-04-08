@@ -26,31 +26,18 @@ class MultiTaskPerceptionModel(nn.Module):
     ):
         super().__init__()
 
-        # Initialize task-specific models
-        self.classifier_model = VGG11Classifier(
+        classifier_model = VGG11Classifier(
             num_classes=num_breeds,
             in_channels=in_channels,
             batchnorm=True,
             head_batchnorm=True,
         )
-        self.localizer_model = VGG11Localizer(in_channels=in_channels, batchnorm=True)
-        self.unet_model = VGG11UNet(num_classes=seg_classes, in_channels=in_channels, batchnorm=True)
+        localizer_model = VGG11Localizer(in_channels=in_channels, batchnorm=True)
+        unet_model = VGG11UNet(num_classes=seg_classes, in_channels=in_channels, batchnorm=True)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        def resolve_checkpoint_path(path):
-            if os.path.exists(path):
-                return path
-
-            checkpoint_path = os.path.join("checkpoints", os.path.basename(path))
-            if os.path.exists(checkpoint_path):
-                return checkpoint_path
-
-            return path
-
         def load_weights(model, path):
-            path = resolve_checkpoint_path(path)
-
             if os.path.exists(path):
                 try:
                     checkpoint = torch.load(path, map_location=device, weights_only=False)
@@ -81,14 +68,51 @@ class MultiTaskPerceptionModel(nn.Module):
                 gdown.download(id="14rA4MTIgPRg9dj51oUj1ErUKsRHr862a", output=unet_path, quiet=False)
             except ImportError:
                 print("Warning: gdown is not installed, skipping remote checkpoint download.")
-        load_weights(self.classifier_model, classifier_path)
-        load_weights(self.localizer_model, localizer_path)
-        load_weights(self.unet_model, unet_path)
+        load_weights(classifier_model, classifier_path)
+        load_weights(localizer_model, localizer_path)
+        load_weights(unet_model, unet_path)
+
+        # Shared backbone
+        self.backbone = unet_model.encoder
+
+
+        # Heads
+        self.classification_head = classifier_model.classifier
+        self.localization_head = localizer_model.localization_head
+        self.localization_activation = nn.ELU()
+
+        # Segmentation decoder
+        self.decode4 = unet_model.decode4
+        self.decode3 = unet_model.decode3
+        self.decode2 = unet_model.decode2
+        self.decode1 = unet_model.decode1
+        self.segmentation_final = unet_model.final_conv
 
     def forward(self, x: torch.Tensor):
-        class_out = self.classifier_model(x)
-        loc_out = self.localizer_model(x)
-        seg_out = self.unet_model(x)
+        bottleneck, skips = self.backbone(x, return_features=True)
+
+        # ✅ Classification
+        class_out = self.classification_head(bottleneck)
+
+        # ✅ Localization
+        loc_out = self.localization_head(bottleneck)
+
+        _, _, h, w = x.shape
+        loc_out = self.localization_activation(loc_out)
+
+        loc_out = loc_out.clone()
+        loc_out[:, 0] *= w
+        loc_out[:, 1] *= h
+        loc_out[:, 2] *= w
+        loc_out[:, 3] *= h
+
+        # ✅ Segmentation
+        s = bottleneck
+        s = self.decode4(s, skips["skip4"])
+        s = self.decode3(s, skips["skip3"])
+        s = self.decode2(s, skips["skip2"])
+        s = self.decode1(s, skips["skip1"])
+        seg_out = self.segmentation_final(s)
 
         return {
             "classification": class_out,

@@ -12,10 +12,6 @@ from models.segmentation import VGG11UNet
 from losses.iou_loss import IoULoss
 from models.multitask import MultiTaskPerceptionModel
 
-
-# -----------------------------
-# DEVICE SELECTION
-# -----------------------------
 def get_device():
     if not torch.cuda.is_available():
         return torch.device("cpu")
@@ -35,9 +31,6 @@ def save_checkpoint(path, model, epoch, best_metric):
     )
 
 
-# -----------------------------
-# DATA LOADER
-# -----------------------------
 def get_dataloader(root_dir, batch_size, split="train", need_bbox=False):
     dataset = OxfordIIITPetDataset(
         root=root_dir,
@@ -50,9 +43,6 @@ def get_dataloader(root_dir, batch_size, split="train", need_bbox=False):
     return DataLoader(dataset, batch_size=batch_size, shuffle=(split == "train"), num_workers=0)
 
 
-# -----------------------------
-# CLASSIFIER
-# -----------------------------
 def train_classifier(root_dir, epochs=25, batch_size=32, lr=3e-4):
     device = get_device()
     print(f"Using device: {device}")
@@ -121,9 +111,6 @@ def train_classifier(root_dir, epochs=25, batch_size=32, lr=3e-4):
     print(f"✅ Training Finished. Best Val Acc: {best_acc:.2f}%")
 
 
-# -----------------------------
-# LOCALIZER
-# -----------------------------
 def train_localizer(root_dir, epochs=25, batch_size=32, lr=3e-4):
     device = get_device()
 
@@ -194,9 +181,6 @@ def train_localizer(root_dir, epochs=25, batch_size=32, lr=3e-4):
     print("✅ Finished Localizer")
 
 
-# -----------------------------
-# SEGMENTATION
-# -----------------------------
 def train_segmentation(root_dir, epochs=25, batch_size=16, lr=3e-4):
     device = get_device()
 
@@ -255,9 +239,6 @@ def train_segmentation(root_dir, epochs=25, batch_size=16, lr=3e-4):
     print("✅ Finished UNet")
 
 
-# -----------------------------
-# MULTITASK
-# -----------------------------
 def train_multitask(
     root_dir,
     epochs=25,
@@ -347,34 +328,16 @@ def train_multitask(
     print("✅ Finished MultiTask Model")
 
 
-# -----------------------------
-# MAIN
-# -----------------------------
 def main():
-    parser = argparse.ArgumentParser(description="Train task-specific or multitask models.")
-    parser.add_argument("--mode", choices=["all", "classifier", "localizer", "segmenter", "multitask"], default="all")
-    parser.add_argument("--root", default="oxford_pet")
-    args = parser.parse_args()
+    root_dir = "data/oxford-iiit-pet"
 
-    if args.mode == "classifier":
-        print("Training Classification head...")
-        train_classifier(args.root)
-    elif args.mode == "localizer":
-        print("Training Localization head...")
-        train_localizer(args.root)
-    elif args.mode == "segmenter":
-        print("Training Segmentation head...")
-        train_segmentation(args.root)
-    elif args.mode == "multitask":
-        print("Training MultiTask model...")
-        train_multitask(args.root)
-    else:
-        print("Training Classification head...")
-        train_classifier(args.root)
-        print("Training Localization head...")
-        train_localizer(args.root)
-        print("Training Segmentation head...")
-        train_segmentation(args.root)
+    
+    print("Training Classification head...")
+    train_classifier(root_dir)
+    print("Training Localization head...")
+    train_localizer(root_dir)
+    print("Training Segmentation head...")
+    train_segmentation(root_dir)
 
 
 if __name__ == "__main__":
