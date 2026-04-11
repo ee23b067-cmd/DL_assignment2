@@ -51,11 +51,3 @@ class VGG11Localizer(nn.Module):
         wh = torch.sigmoid(out[:, 2:]) * self.image_size
         boxes = torch.cat([centers, wh], dim=1)
         return boxes
-        # Scale to image dimensions
-        out = out.clone()
-        out[:, 0] = out[:, 0] * w  # cx
-        out[:, 1] = out[:, 1] * h  # cy
-        out[:, 2] = out[:, 2] * w  # width
-        out[:, 3] = out[:, 3] * h  # height
-
-        return out
