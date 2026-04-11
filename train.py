@@ -13,9 +13,6 @@ from losses.iou_loss import IoULoss
 from models.multitask import MultiTaskPerceptionModel
 
 
-# -----------------------------
-# DEVICE SELECTION
-# -----------------------------
 def get_device():
     if not torch.cuda.is_available():
         return torch.device("cpu")
@@ -35,9 +32,6 @@ def save_checkpoint(path, model, epoch, best_metric):
     )
 
 
-# -----------------------------
-# DATA LOADER
-# -----------------------------
 def get_dataloader(root_dir, batch_size, split="train", need_bbox=False):
     dataset = OxfordIIITPetDataset(
         root=root_dir,
@@ -50,9 +44,6 @@ def get_dataloader(root_dir, batch_size, split="train", need_bbox=False):
     return DataLoader(dataset, batch_size=batch_size, shuffle=(split == "train"), num_workers=0)
 
 
-# -----------------------------
-# CLASSIFIER
-# -----------------------------
 def train_classifier(root_dir, epochs=25, batch_size=32, lr=3e-4):
     device = get_device()
     print(f"Using device: {device}")
@@ -67,7 +58,7 @@ def train_classifier(root_dir, epochs=25, batch_size=32, lr=3e-4):
 
     os.makedirs("checkpoints", exist_ok=True)
 
-    print("\n🚀 Training Classifier...")
+    print("\n Training Classifier...")
     best_acc = 0.0
 
     for epoch in range(epochs):
@@ -116,14 +107,11 @@ def train_classifier(root_dir, epochs=25, batch_size=32, lr=3e-4):
         if val_acc > best_acc:
             best_acc = val_acc
             save_checkpoint("checkpoints/classifier.pth", model, epoch + 1, best_acc)
-            print(f"✨ New best Val Acc: {val_acc:.2f}%. Saved checkpoint.")
+            print(f" New best Val Acc: {val_acc:.2f}%. Saved checkpoint.")
 
-    print(f"✅ Training Finished. Best Val Acc: {best_acc:.2f}%")
+    print(f" Training Finished. Best Val Acc: {best_acc:.2f}%")
 
 
-# -----------------------------
-# LOCALIZER
-# -----------------------------
 def train_localizer(root_dir, epochs=25, batch_size=32, lr=3e-4):
     device = get_device()
 
@@ -140,7 +128,7 @@ def train_localizer(root_dir, epochs=25, batch_size=32, lr=3e-4):
 
     os.makedirs("checkpoints", exist_ok=True)
 
-    print("\n🚀 Training Localizer...")
+    print("\n Training Localizer...")
     best_loss = float('inf')
 
     for epoch in range(epochs):
@@ -189,14 +177,11 @@ def train_localizer(root_dir, epochs=25, batch_size=32, lr=3e-4):
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
             save_checkpoint("checkpoints/localizer.pth", model, epoch + 1, best_loss)
-            print(f"✨ New best Val Loss: {avg_val_loss:.4f}. Saved checkpoint.")
+            print(f" New best Val Loss: {avg_val_loss:.4f}. Saved checkpoint.")
 
-    print("✅ Finished Localizer")
+    print("Finished Localizer")
 
 
-# -----------------------------
-# SEGMENTATION
-# -----------------------------
 def train_segmentation(root_dir, epochs=25, batch_size=16, lr=3e-4):
     device = get_device()
 
@@ -211,7 +196,7 @@ def train_segmentation(root_dir, epochs=25, batch_size=16, lr=3e-4):
 
     os.makedirs("checkpoints", exist_ok=True)
 
-    print("\n🚀 Training UNet...")
+    print("\n Training UNet...")
     best_loss = float('inf')
 
     for epoch in range(epochs):
@@ -250,14 +235,10 @@ def train_segmentation(root_dir, epochs=25, batch_size=16, lr=3e-4):
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
             save_checkpoint("checkpoints/unet.pth", model, epoch + 1, best_loss)
-            print(f"✨ New best Val Loss: {avg_val_loss:.4f}. Saved checkpoint.")
+            print(f"New best Val Loss: {avg_val_loss:.4f}. Saved checkpoint.")
 
-    print("✅ Finished UNet")
+    print(" Finished UNet")
 
-
-# -----------------------------
-# MULTITASK
-# -----------------------------
 def train_multitask(
     root_dir,
     epochs=25,
@@ -292,7 +273,7 @@ def train_multitask(
 
     os.makedirs("checkpoints", exist_ok=True)
 
-    print("\n🚀 Training MultiTask Model...")
+    print("\nTraining MultiTask Model...")
     best_loss = float("inf")
 
     for epoch in range(epochs):
@@ -342,39 +323,23 @@ def train_multitask(
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
             save_checkpoint("checkpoints/multitask.pth", model, epoch + 1, best_loss)
-            print(f"✨ New best Val Loss: {avg_val_loss:.4f}. Saved checkpoint.")
+            print(f"New best Val Loss: {avg_val_loss:.4f}. Saved checkpoint.")
 
-    print("✅ Finished MultiTask Model")
+    print("Finished MultiTask Model")
 
 
-# -----------------------------
-# MAIN
-# -----------------------------
 def main():
     parser = argparse.ArgumentParser(description="Train task-specific or multitask models.")
     parser.add_argument("--mode", choices=["all", "classifier", "localizer", "segmenter", "multitask"], default="all")
     parser.add_argument("--root", default="oxford_pet")
     args = parser.parse_args()
-
-    if args.mode == "classifier":
-        print("Training Classification head...")
-        train_classifier(args.root)
-    elif args.mode == "localizer":
-        print("Training Localization head...")
-        train_localizer(args.root)
-    elif args.mode == "segmenter":
-        print("Training Segmentation head...")
-        train_segmentation(args.root)
-    elif args.mode == "multitask":
-        print("Training MultiTask model...")
-        train_multitask(args.root)
-    else:
-        print("Training Classification head...")
-        train_classifier(args.root)
-        print("Training Localization head...")
-        train_localizer(args.root)
-        print("Training Segmentation head...")
-        train_segmentation(args.root)
+    
+    print("Training Classification head...")
+    train_classifier(args.root)
+    print("Training Localization head...")
+    train_localizer(args.root)
+    print("Training Segmentation head...")
+    train_segmentation(args.root)
 
 
 if __name__ == "__main__":
