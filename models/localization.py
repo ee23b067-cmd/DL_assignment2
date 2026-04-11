@@ -45,7 +45,10 @@ class VGG11Localizer(nn.Module):
 
         x = self.encoder(x)
         out = self.localization_head(x)
-
+        centers = torch.sigmoid(out[:, :2]) * self.image_size
+        wh = torch.sigmoid(out[:, 2:]) * self.image_size
+        boxes = torch.cat([centers, wh], dim=1)
+        return boxes
         # Scale to image dimensions
         out = out.clone()
         out[:, 0] = out[:, 0] * w  # cx
