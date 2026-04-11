@@ -62,8 +62,8 @@ class MultiTaskPerceptionModel(nn.Module):
         if drive:
             try:
                 import importlib
-                gdown = importlib.import_module("gdown")
-                gdown.download(id="1LE9vRm3EHsWLHy58WDyWkjmiSgDllMCG", output=classifier_path, quiet=False)
+                gdown = importlib.import_module("gdown"
+                gdown.download(id="1kEukDf3HQqab-5lA40DTZgYwv0Q4f8uC", output=classifier_path, quiet=False)
                 gdown.download(id="1kkQnEhKdsD147nWVGZgbR2GES2GvqsU8", output=localizer_path, quiet=False)
                 gdown.download(id="14rA4MTIgPRg9dj51oUj1ErUKsRHr862a", output=unet_path, quiet=False)
             except ImportError:
