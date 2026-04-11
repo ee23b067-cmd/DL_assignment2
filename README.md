@@ -80,6 +80,6 @@ The script prints the output tensor shapes for each task.
 - Localization and multi-task training expect bounding boxes to be available in the annotations.
 
 
-git hub : https://github.com/ee23b067-cmd/DL_assignment2/tree/main
+git hub :https://github.com/ee23b067-cmd/DL_assignment2/tree/april-7-snapshot
 
 wandb : https://wandb.ai/ee23b067-indian-institute-of-technology-madras/DA6401_assignement2/reportlist
