@@ -73,7 +73,7 @@ class MultiTaskPerceptionModel(nn.Module):
         load_weights(unet_model, unet_path)
 
         # Shared backbone
-        self.backbone = unet_model.encoder
+        self.backbone = classifier_model.encoder
 
 
         # Heads
