@@ -36,8 +36,6 @@ class CustomDropout(nn.Module):
 
         if self.p == 1:
             return torch.zeros_like(x)
-        # Create a mask with the same shape as x, with values 1 with probability (1 - p)
         mask = (torch.rand(x.shape, device=x.device) > self.p).float()
         
-        # Scale the output during training to maintain the same expected value
         return (x * mask) / (1 - self.p)
