@@ -64,7 +64,7 @@ class MultiTaskPerceptionModel(nn.Module):
                 import importlib
                 gdown = importlib.import_module("gdown")
                 gdown.download(id="1LE9vRm3EHsWLHy58WDyWkjmiSgDllMCG", output=classifier_path, quiet=False)
-                gdown.download(id="1QFDa-O74KMjanvWc1_oCpxANtzn4N7vJ", output=localizer_path, quiet=False)
+                gdown.download(id="1kkQnEhKdsD147nWVGZgbR2GES2GvqsU8", output=localizer_path, quiet=False)
                 gdown.download(id="14rA4MTIgPRg9dj51oUj1ErUKsRHr862a", output=unet_path, quiet=False)
             except ImportError:
                 print("Warning: gdown is not installed, skipping remote checkpoint download.")
