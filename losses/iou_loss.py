@@ -27,7 +27,6 @@ class IoULoss(nn.Module):
             pred_boxes: [B, 4] predicted boxes in (x_center, y_center, width, height) format.
             target_boxes: [B, 4] target boxes in (x_center, y_center, width, height) format."""
         
-        # Convert (x_center, y_center, width, height) to (xmin, ymin, xmax, ymax)
         pred_x1 = pred_boxes[:, 0] - pred_boxes[:, 2] / 2
         pred_y1 = pred_boxes[:, 1] - pred_boxes[:, 3] / 2
         pred_x2 = pred_boxes[:, 0] + pred_boxes[:, 2] / 2
@@ -44,7 +43,6 @@ class IoULoss(nn.Module):
         inter_x2 = torch.min(pred_x2, target_x2)
         inter_y2 = torch.min(pred_y2, target_y2)
 
-        # Intersection Area (W * H)
         inter_w = (inter_x2 - inter_x1).clamp(min=0)
         inter_h = (inter_y2 - inter_y1).clamp(min=0)
         inter_area = inter_w * inter_h
