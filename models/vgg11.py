@@ -103,7 +103,6 @@ class VGG11(nn.Module):
         if return_features:
             features["skip5"] = x5
 
-        # Bottleneck (before final pooling → important for segmentation)
         bottleneck = x
 
         if return_features:
