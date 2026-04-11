@@ -31,7 +31,6 @@ class DecoderBlock(nn.Module):
     def forward(self, x, skip):
         x = self.up(x)
 
-        # Handle size mismatch (VERY IMPORTANT)
         if x.shape != skip.shape:
             x = torch.nn.functional.interpolate(
                 x, size=skip.shape[2:], mode="bilinear", align_corners=False
@@ -59,11 +58,10 @@ class VGG11UNet(nn.Module):
 
         # Decoder
         
-        # bottleneck (skip5) is 512 channels, size 14x14
-        self.decode4 = DecoderBlock(512, 512, dropout_p)  # 14 → 28
-        self.decode3 = DecoderBlock(512, 256, dropout_p)  # 28 → 56
-        self.decode2 = DecoderBlock(256, 128, dropout_p)  # 56 → 112
-        self.decode1 = DecoderBlock(128, 64, dropout_p)   # 112 → 224
+        self.decode4 = DecoderBlock(512, 512, dropout_p)  
+        self.decode3 = DecoderBlock(512, 256, dropout_p)  
+        self.decode2 = DecoderBlock(256, 128, dropout_p)  
+        self.decode1 = DecoderBlock(128, 64, dropout_p)   
 
         self.final_conv = nn.Conv2d(64, num_classes, kernel_size=1)
 
@@ -77,7 +75,6 @@ class VGG11UNet(nn.Module):
         """
         bottleneck, skips = self.encoder(x, return_features=True)
 
-        # bottleneck is already at the skip5 level (14x14)
         x = bottleneck
         x = self.decode4(x, skips["skip4"])
         x = self.decode3(x, skips["skip3"])
